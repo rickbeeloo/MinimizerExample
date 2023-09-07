@@ -77,12 +77,26 @@ def get_kmers(fasta_path, k):
 
 fasta = "GCA_001580015.1_ASM158001v1_genomic.fasta"
 
-minimizers = get_minimizers(fasta, 9, 10).keys()
-kmers = get_kmers(fasta, 9).keys() 
+k_mer_size = 9
+minimizers = get_minimizers(fasta, k_mer_size, 10).keys()
+kmers = get_kmers(fasta, k_mer_size).keys() 
 print(len(minimizers))
 print(len(kmers))
-print("Saves: ", 100 - round(len(minimizers) / len(kmers) * 100, 0), "%") 
+print("Kmer size: {} saves: ".format(k_mer_size), 100 - round(len(minimizers) / len(kmers) * 100, 0), "%") 
+
+
+k_mer_size = 31
+minimizers = get_minimizers(fasta, k_mer_size, 10).keys()
+kmers = get_kmers(fasta, k_mer_size).keys() 
+print(len(minimizers))
+print(len(kmers))
+print("Kmer size: {} saves: ".format(k_mer_size), 100 - round(len(minimizers) / len(kmers) * 100, 0), "%") 
+
+
+# 46009
+# 127196
+# Kmer size: 9 saves:  64.0 %
 
 # 426154
 # 2336989
-# Saves:  82.0 %
+# Kmer size: 31 saves:  82.0 %
