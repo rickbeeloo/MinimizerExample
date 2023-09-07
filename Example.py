@@ -2,6 +2,40 @@ import btllib  # https://www.theoj.org/joss-papers/joss.04720/10.21105.joss.0472
 import collections 
 from Bio import SeqIO
 
+
+# Using minimizers is different from using smaller Ks. A smaller k-mer will decrease the number of k-mers but also the resolution you have.
+# A minimizer will pick the smallest k-mer in a window but the k-mer size can still be large. 
+# You might lose important k-mers this way but if it's more composition than exact k-mer that matter it wouldn't have much negative effect.
+# Take for example:
+# ACTACGAT
+# The 3-mer would be:
+# ACT
+# CTA
+# TAC
+# ACG
+# CGA
+# GAT
+# The minimizers with a window size of 4 would be:
+# K-mer: ACT, Minimizer: ACT
+# K-mer: CTA, Minimizer: ACT
+# K-mer: TAC, Minimizer: ACT
+# K-mer: ACG, Minimizer: ACG
+# K-mer: CGA, Minimizer: ACG
+# K-mer: GAT, Minimizer: ACG
+# This would just summarize to ACT: 3, ACG: 3, which is just two kmers compared to 6. 
+# If we then get another sequence and mutate it in two places:
+# ACCACGGT
+# We would get 
+# K-mer: ACC, Minimizer: ACC
+# K-mer: CCA, Minimizer: ACC
+# K-mer: CAC, Minimizer: CAC
+# K-mer: ACG, Minimizer: ACG
+# K-mer: CGG, Minimizer: ACG
+# K-mer: GGT, Minimizer: ACG
+# So: ACC:2, CAC:1, ACG:3
+# So you still notice the shared "ACG" minimizer among the sequences. 
+# In total, we would now have ACT ACC CAC  ACG which is 4 kmers vs 11 ( 6 for ACTACGAT, 6 for ACCACGGT - 1 for ACG as it is shared)
+
 def get_minimizers(fasta_path, k, w):
     # we use btllib to get the minimzers.
     with btllib.Indexlr(fasta_path, k, w, btllib.IndexlrFlag.LONG_MODE) as indexer:
@@ -18,6 +52,7 @@ def reverse_complement(dna_sequence):
     return complement_seq
 
 # Adjusted from Heng li: https://github.com/lh3/kmer-cnt
+# This is slow, better use c++ to deal with this as well
 def get_kmers(fasta_path, k):
     h = dict()
     for record in SeqIO.parse(fasta_path, "fasta"):
@@ -42,8 +77,8 @@ def get_kmers(fasta_path, k):
 
 fasta = "GCA_001580015.1_ASM158001v1_genomic.fasta"
 
-minimizers = get_minimizers(fasta, 31, 10).keys()
-kmers = get_kmers(fasta, 31).keys() # This is slow, better use c++ to deal with this as well
+minimizers = get_minimizers(fasta, 9, 10).keys()
+kmers = get_kmers(fasta, 9).keys() 
 print(len(minimizers))
 print(len(kmers))
 print("Saves: ", 100 - round(len(minimizers) / len(kmers) * 100, 0), "%") 
